@@ -1,10 +1,17 @@
-import { MercadoPagoConfig, Preference } from "mercadopago";
+import {
+  MercadoPagoConfig,
+  Preference,
+} from "mercadopago";
 
 const client = new MercadoPagoConfig({
-  accessToken: process.env.MP_ACCESS_TOKEN,
+  accessToken:
+    process.env.MERCADO_PAGO_ACCESS_TOKEN,
 });
 
-export default async function handler(req, res) {
+export default async function handler(
+  req,
+  res
+) {
   if (req.method !== "POST") {
     return res.status(405).json({
       erro: "Método não permitido",
@@ -14,27 +21,49 @@ export default async function handler(req, res) {
   try {
     const { itens } = req.body;
 
-    const preference = new Preference(client);
+    console.log(
+      "ITENS RECEBIDOS:",
+      itens
+    );
 
-    const resposta = await preference.create({
-      body: {
-        items: itens.map((item) => ({
-          title: item.nome,
-          unit_price: Number(item.preco),
-          quantity: Number(item.quantidade),
-          currency_id: "BRL",
-        })),
-      },
-    });
+    const preference =
+      new Preference(client);
 
-    res.status(200).json({
-      init_point: resposta.init_point,
+    const resposta =
+      await preference.create({
+        body: {
+          items: itens.map((item) => ({
+            title: item.nome,
+            unit_price: Number(
+              item.preco
+            ),
+            quantity: Number(
+              item.quantidade
+            ),
+            currency_id: "BRL",
+          })),
+        },
+      });
+
+    console.log(
+      "PREFERENCE:",
+      resposta
+    );
+
+    return res.status(200).json({
+      init_point:
+        resposta.init_point,
     });
   } catch (erro) {
-    console.log(erro);
+    console.log(
+      "ERRO MERCADO PAGO:",
+      erro
+    );
 
-    res.status(500).json({
-      erro: "Erro ao gerar pagamento",
+    return res.status(500).json({
+      erro:
+        erro.message ||
+        "Erro ao gerar pagamento",
     });
   }
 }
