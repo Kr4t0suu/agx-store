@@ -1,9 +1,6 @@
 import express from "express";
 import cors from "cors";
-
-import { MercadoPagoConfig, Preference } from "mercadopago";
-
-import { createClient } from "@supabase/supabase-js";
+import mercadopago from "mercadopago";
 
 const app = express();
 
@@ -11,69 +8,29 @@ app.use(cors());
 
 app.use(express.json());
 
-const client = new MercadoPagoConfig({
-  accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN,
+mercadopago.configure({
+  access_token: process.env.MP_ACCESS_TOKEN,
 });
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
-app.post("/", async (req, res) => {
+app.post("/api", async (req, res) => {
   try {
     const { itens } = req.body;
 
-    if (!itens || itens.length === 0) {
-      return res.status(400).json({
-        erro: "Carrinho vazio",
-      });
-    }
+    const preference = {
+      items: itens.map((item) => ({
+        title: item.nome,
+        unit_price: Number(item.preco),
+        quantity: Number(item.quantidade),
+        currency_id: "BRL",
+      })),
+    };
 
-    const total = itens.reduce((acc, item) => {
-      return (
-        acc +
-        Number(item.preco) *
-          Number(item.quantidade || 1)
-      );
-    }, 0);
-
-    const { data, error } = await supabase
-      .from("pedidos")
-      .insert([
-        {
-          produtos: itens,
-          total,
-          status: "pendente",
-        },
-      ])
-      .select();
-
-    if (error) {
-      console.log(error);
-
-      return res.status(500).json({
-        erro: "Erro ao salvar pedido",
-      });
-    }
-
-    const items = itens.map((item) => ({
-      title: item.nome,
-      quantity: Number(item.quantidade || 1),
-      currency_id: "BRL",
-      unit_price: Number(item.preco),
-    }));
-
-    const preference = new Preference(client);
-
-    const resposta = await preference.create({
-      body: {
-        items,
-      },
-    });
+    const resposta = await mercadopago.preferences.create(
+      preference
+    );
 
     res.json({
-      init_point: resposta.init_point,
+      init_point: resposta.body.init_point,
     });
   } catch (erro) {
     console.log(erro);
