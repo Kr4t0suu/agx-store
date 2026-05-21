@@ -1,5 +1,3 @@
-import "dotenv/config";
-
 import express from "express";
 import cors from "cors";
 
@@ -14,8 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 const client = new MercadoPagoConfig({
-  accessToken:
-    process.env.MERCADO_PAGO_ACCESS_TOKEN,
+  accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN,
 });
 
 const supabase = createClient(
@@ -23,11 +20,9 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-app.post("/criar-pagamento", async (req, res) => {
+app.post("/", async (req, res) => {
   try {
     const { itens } = req.body;
-
-    console.log("ITENS:", itens);
 
     if (!itens || itens.length === 0) {
       return res.status(400).json({
@@ -43,7 +38,6 @@ app.post("/criar-pagamento", async (req, res) => {
       );
     }, 0);
 
-    // SALVAR PEDIDO NO SUPABASE
     const { data, error } = await supabase
       .from("pedidos")
       .insert([
@@ -56,16 +50,13 @@ app.post("/criar-pagamento", async (req, res) => {
       .select();
 
     if (error) {
-      console.log("ERRO SUPABASE:", error);
+      console.log(error);
 
       return res.status(500).json({
         erro: "Erro ao salvar pedido",
       });
     }
 
-    console.log("PEDIDO SALVO:", data);
-
-    // FORMATAR ITENS MERCADO PAGO
     const items = itens.map((item) => ({
       title: item.nome,
       quantity: Number(item.quantidade || 1),
@@ -75,33 +66,22 @@ app.post("/criar-pagamento", async (req, res) => {
 
     const preference = new Preference(client);
 
-    // CRIAR PAGAMENTO
     const resposta = await preference.create({
       body: {
         items,
       },
     });
 
-    console.log(
-      "LINK PAGAMENTO:",
-      resposta.init_point
-    );
-
     res.json({
       init_point: resposta.init_point,
     });
   } catch (erro) {
-    console.log("ERRO MP:", erro);
+    console.log(erro);
 
     res.status(500).json({
       erro: "Erro ao gerar pagamento",
-      detalhes: erro.message,
     });
   }
 });
 
-app.listen(3000, () => {
-  console.log(
-    "Servidor rodando na porta 3000"
-  );
-});
+export default app;
