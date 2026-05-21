@@ -1,4 +1,5 @@
 import { useCart } from "../context/CartContext";
+import { supabase } from "../supabase";
 
 function CartSidebar() {
   const { cart, removeFromCart } = useCart();
@@ -12,41 +13,48 @@ function CartSidebar() {
 
   async function finalizarCompra() {
     try {
+      const { error } = await supabase
+        .from("pedidos")
+        .insert([
+          {
+            cliente: "Cliente AGX",
+            produtos: cart,
+            valor_total: total,
+            status: "pendente",
+          },
+        ]);
+
+      if (error) {
+        console.log(error);
+        alert("Erro ao salvar pedido");
+        return;
+      }
+
       const resposta = await fetch(
         "/api/create-preference",
         {
           method: "POST",
 
           headers: {
-            "Content-Type":
-              "application/json",
+            "Content-Type": "application/json",
           },
 
           body: JSON.stringify({
             itens: cart.map((item) => ({
               id: item.id,
               nome: item.nome,
-              preco:
-                Number(item.preco) || 0,
+              preco: Number(item.preco) || 0,
               quantidade:
-                Number(item.quantidade) ||
-                1,
+                Number(item.quantidade) || 1,
             })),
           }),
         }
       );
 
-      if (!resposta.ok) {
-        throw new Error("Erro na API");
-      }
-
       const data = await resposta.json();
 
-      console.log(data);
-
       if (data.init_point) {
-        window.location.href =
-          data.init_point;
+        window.location.href = data.init_point;
       } else {
         alert("Erro ao gerar pagamento");
       }
@@ -124,8 +132,7 @@ function CartSidebar() {
                   marginTop: "5px",
                 }}
               >
-                Quantidade:{" "}
-                {item.quantidade || 1}
+                Quantidade: {item.quantidade || 1}
               </p>
 
               <h3
@@ -134,11 +141,7 @@ function CartSidebar() {
                   marginTop: "10px",
                 }}
               >
-                R${" "}
-                {(
-                  Number(item.preco) *
-                  (item.quantidade || 1)
-                ).toFixed(2)}
+                R$ {Number(item.preco).toFixed(2)}
               </h3>
 
               <button
@@ -169,8 +172,7 @@ function CartSidebar() {
               fontSize: "34px",
             }}
           >
-            Total: R${" "}
-            {total.toFixed(2)}
+            Total: R$ {total.toFixed(2)}
           </h2>
 
           <button
