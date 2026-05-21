@@ -39,7 +39,21 @@ function App() {
         data
       );
 
-      setProdutos(data || []);
+      const produtosCorrigidos =
+        (data || []).map(
+          (produto) => ({
+            ...produto,
+
+            preco:
+              Number(
+                produto.preco
+              ) || 0,
+          })
+        );
+
+      setProdutos(
+        produtosCorrigidos
+      );
     }
 
     setLoading(false);
@@ -78,6 +92,7 @@ function App() {
           <div
             style={{
               display: "grid",
+
               gridTemplateColumns:
                 "repeat(auto-fit, minmax(300px, 1fr))",
 
@@ -174,17 +189,24 @@ function App() {
                       }}
                     >
                       R${" "}
-                      {parseFloat(
+                      {Number(
                         produto.preco ||
                           0
-                      )}
+                      ).toFixed(2)}
                     </h3>
 
                     <button
                       onClick={() =>
-                        addToCart(
-                          produto
-                        )
+                        addToCart({
+                          ...produto,
+
+                          preco:
+                            Number(
+                              produto.preco
+                            ) || 0,
+
+                          quantidade: 1,
+                        })
                       }
                       style={{
                         width:

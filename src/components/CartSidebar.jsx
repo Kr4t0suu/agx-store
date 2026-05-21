@@ -9,12 +9,11 @@ function CartSidebar() {
   } = useCart();
 
   const total = cart.reduce((acc, item) => {
-    const preco = Number(item.preco) || 0;
-
-    const quantidade =
-      Number(item.quantidade) || 1;
-
-    return acc + preco * quantidade;
+    return (
+      acc +
+      Number(item.preco) *
+        Number(item.quantidade)
+    );
   }, 0);
 
   async function finalizarCompra() {
@@ -46,18 +45,15 @@ function CartSidebar() {
         total
       );
 
+      // SALVAR NO SUPABASE
       const { data, error } =
         await supabase
           .from("pedidos")
           .insert([
             {
-              cliente: "Cliente AGX",
-
               produtos:
                 produtosFormatados,
-
               valor_total: total,
-
               status: "pendente",
             },
           ])
@@ -81,6 +77,7 @@ function CartSidebar() {
         data
       );
 
+      // MERCADO PAGO
       const resposta = await fetch(
         "/api/create-preference",
         {
@@ -114,6 +111,11 @@ function CartSidebar() {
         window.location.href =
           dataPagamento.init_point;
       } else {
+        console.log(
+          "ERRO MP:",
+          dataPagamento
+        );
+
         alert(
           "Erro ao gerar pagamento"
         );
@@ -201,7 +203,7 @@ function CartSidebar() {
                 }}
               >
                 Quantidade:{" "}
-                {item.quantidade || 1}
+                {item.quantidade}
               </p>
 
               <h3
@@ -211,8 +213,11 @@ function CartSidebar() {
                 }}
               >
                 R${" "}
-                {Number(
-                  item.preco || 0
+                {(
+                  Number(item.preco) *
+                  Number(
+                    item.quantidade
+                  )
                 ).toFixed(2)}
               </h3>
 
@@ -250,7 +255,7 @@ function CartSidebar() {
             }}
           >
             Total: R${" "}
-            {Number(total).toFixed(2)}
+            {total.toFixed(2)}
           </h2>
 
           <button
