@@ -12,22 +12,29 @@ function CartSidebar() {
 
   async function finalizarCompra() {
     try {
-      const resposta = await fetch("/api", {
-        method: "POST",
+      const resposta = await fetch(
+        "/api/create-preference",
+        {
+          method: "POST",
 
-        headers: {
-          "Content-Type": "application/json",
-        },
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
 
-        body: JSON.stringify({
-          itens: cart.map((item) => ({
-            id: item.id,
-            nome: item.nome,
-            preco: Number(item.preco) || 0,
-            quantidade: Number(item.quantidade) || 1,
-          })),
-        }),
-      });
+          body: JSON.stringify({
+            itens: cart.map((item) => ({
+              id: item.id,
+              nome: item.nome,
+              preco:
+                Number(item.preco) || 0,
+              quantidade:
+                Number(item.quantidade) ||
+                1,
+            })),
+          }),
+        }
+      );
 
       if (!resposta.ok) {
         throw new Error("Erro na API");
@@ -38,7 +45,8 @@ function CartSidebar() {
       console.log(data);
 
       if (data.init_point) {
-        window.location.href = data.init_point;
+        window.location.href =
+          data.init_point;
       } else {
         alert("Erro ao gerar pagamento");
       }
@@ -116,7 +124,8 @@ function CartSidebar() {
                   marginTop: "5px",
                 }}
               >
-                Quantidade: {item.quantidade || 1}
+                Quantidade:{" "}
+                {item.quantidade || 1}
               </p>
 
               <h3
@@ -125,11 +134,17 @@ function CartSidebar() {
                   marginTop: "10px",
                 }}
               >
-                R$ {Number(item.preco).toFixed(2)}
+                R${" "}
+                {(
+                  Number(item.preco) *
+                  (item.quantidade || 1)
+                ).toFixed(2)}
               </h3>
 
               <button
-                onClick={() => removeFromCart(item.id)}
+                onClick={() =>
+                  removeFromCart(item.id)
+                }
                 style={{
                   width: "100%",
                   marginTop: "10px",
@@ -154,7 +169,8 @@ function CartSidebar() {
               fontSize: "34px",
             }}
           >
-            Total: R$ {total.toFixed(2)}
+            Total: R${" "}
+            {total.toFixed(2)}
           </h2>
 
           <button
