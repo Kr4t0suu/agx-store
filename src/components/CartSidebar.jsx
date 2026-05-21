@@ -12,7 +12,7 @@ function CartSidebar() {
   async function finalizarCompra() {
     try {
       const resposta = await fetch(
-        "http://localhost:3000/criar-pagamento",
+        "https://agx-store-production.up.railway.app/criar-pagamento",
         {
           method: "POST",
 
