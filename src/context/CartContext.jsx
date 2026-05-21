@@ -14,71 +14,80 @@ export function CartProvider({
     useState([]);
 
   function addToCart(produto) {
-    const produtoExiste = cart.find(
-      (item) =>
-        item.id === produto.id
-    );
-
-    if (produtoExiste) {
-      const novoCarrinho =
-        cart.map((item) => {
-          if (
+    setCart((prevCart) => {
+      const produtoExiste =
+        prevCart.find(
+          (item) =>
             item.id === produto.id
-          ) {
-            return {
-              ...item,
-              quantidade:
-                (item.quantidade ||
-                  1) + 1,
-            };
+        );
+
+      if (produtoExiste) {
+        return prevCart.map(
+          (item) => {
+            if (
+              item.id === produto.id
+            ) {
+              return {
+                ...item,
+                quantidade:
+                  (Number(
+                    item.quantidade
+                  ) || 1) + 1,
+              };
+            }
+
+            return item;
           }
+        );
+      }
 
-          return item;
-        });
-
-      setCart(novoCarrinho);
-    } else {
-      setCart([
-        ...cart,
+      return [
+        ...prevCart,
         {
           ...produto,
+          preco:
+            Number(
+              produto.preco
+            ) || 0,
           quantidade: 1,
         },
-      ]);
-    }
+      ];
+    });
   }
 
   function removeFromCart(id) {
-    const produtoExiste = cart.find(
-      (item) => item.id === id
-    );
+    setCart((prevCart) => {
+      const produtoExiste =
+        prevCart.find(
+          (item) => item.id === id
+        );
 
-    if (!produtoExiste) return;
+      if (!produtoExiste)
+        return prevCart;
 
-    if (
-      produtoExiste.quantidade > 1
-    ) {
-      const novoCarrinho =
-        cart.map((item) => {
-          if (item.id === id) {
-            return {
-              ...item,
-              quantidade:
-                item.quantidade - 1,
-            };
+      if (
+        produtoExiste.quantidade > 1
+      ) {
+        return prevCart.map(
+          (item) => {
+            if (item.id === id) {
+              return {
+                ...item,
+                quantidade:
+                  item.quantidade -
+                  1,
+              };
+            }
+
+            return item;
           }
+        );
+      }
 
-          return item;
-        });
-
-      setCart(novoCarrinho);
-    } else {
-      setCart(
-        cart.filter(
-          (item) => item.id !== id
-        )
+      return prevCart.filter(
+        (item) => item.id !== id
       );
-    }
+    });
   }
 
   function clearCart() {
@@ -100,5 +109,7 @@ export function CartProvider({
 }
 
 export function useCart() {
-  return useContext(CartContext);
+  return useContext(
+    CartContext
+  );
 }
