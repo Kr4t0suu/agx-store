@@ -10,12 +10,15 @@ function CartSidebar() {
 
   const total = cart.reduce(
     (acc, item) => {
+      const preco =
+        Number(item.preco) || 0;
+
+      const quantidade =
+        Number(item.quantidade) || 1;
+
       return (
         acc +
-        Number(item.preco || 0) *
-          Number(
-            item.quantidade || 1
-          )
+        preco * quantidade
       );
     },
     0
@@ -48,82 +51,79 @@ function CartSidebar() {
       );
 
       console.log(
-        "VALOR TOTAL:",
+        "TOTAL:",
         total
       );
 
-      // SALVAR PEDIDO
-      const {
-        data: pedidoSalvo,
-        error,
-      } = await supabase
-        .from("pedidos")
-        .insert([
-          {
-            produtos:
-              produtosFormatados,
-            valor_total: total,
-            status: "pendente",
-          },
-        ])
-        .select();
+      const { data, error } =
+        await supabase
+          .from("pedidos")
+          .insert([
+            {
+              produtos:
+                produtosFormatados,
 
-      console.log(
-        "PEDIDO:",
-        pedidoSalvo
-      );
+              valor_total:
+                total,
 
-      console.log(
-        "ERRO:",
-        error
-      );
+              status:
+                "pendente",
+            },
+          ])
+          .select();
 
       if (error) {
-        alert(
-          error.message
+        console.log(
+          "ERRO SUPABASE:",
+          error
         );
+
+        alert(error.message);
 
         return;
       }
 
-      // MERCADO PAGO
-      const resposta = await fetch(
-        "/api/create-preference",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-
-          body: JSON.stringify({
-            itens:
-              produtosFormatados,
-          }),
-        }
+      console.log(
+        "PEDIDO SALVO:",
+        data
       );
 
-      const pagamento =
+      const resposta =
+        await fetch(
+          "/api/create-preference",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body: JSON.stringify({
+              itens:
+                produtosFormatados,
+            }),
+          }
+        );
+
+      const dataPagamento =
         await resposta.json();
 
       console.log(
-        "PAGAMENTO:",
-        pagamento
+        "MP:",
+        dataPagamento
       );
 
-      if (pagamento.init_point) {
+      if (
+        dataPagamento.init_point
+      ) {
         clearCart();
 
         window.location.href =
-          pagamento.init_point;
+          dataPagamento.init_point;
       } else {
         alert(
           "Erro Mercado Pago"
-        );
-
-        console.log(
-          pagamento
         );
       }
     } catch (erro) {
@@ -133,7 +133,7 @@ function CartSidebar() {
       );
 
       alert(
-        "Erro ao conectar servidor"
+        "Erro ao finalizar compra"
       );
     }
   }
@@ -169,91 +169,99 @@ function CartSidebar() {
         </p>
       ) : (
         <>
-          {cart.map((item) => (
-            <div
-              key={item.id}
-              style={{
-                background: "#111",
-                borderRadius:
-                  "15px",
-                padding: "10px",
-                marginBottom: "15px",
-              }}
-            >
-              <img
-                src={item.imagem}
-                alt={item.nome}
+          {cart.map((item) => {
+            const subtotal =
+              Number(item.preco) *
+              Number(
+                item.quantidade
+              );
+
+            return (
+              <div
+                key={item.id}
                 style={{
-                  width: "100%",
-                  height: "180px",
-                  objectFit: "cover",
+                  background: "#111",
                   borderRadius:
-                    "10px",
-                }}
-              />
-
-              <h2
-                style={{
-                  color: "#fff",
-                  fontSize: "20px",
-                  marginTop: "10px",
+                    "15px",
+                  padding: "10px",
+                  marginBottom:
+                    "15px",
                 }}
               >
-                {item.nome}
-              </h2>
+                <img
+                  src={item.imagem}
+                  alt={item.nome}
+                  style={{
+                    width: "100%",
+                    height: "180px",
+                    objectFit:
+                      "cover",
+                    borderRadius:
+                      "10px",
+                  }}
+                />
 
-              <p
-                style={{
-                  color: "#ccc",
-                  marginTop: "5px",
-                }}
-              >
-                Quantidade:{" "}
-                {item.quantidade}
-              </p>
+                <h2
+                  style={{
+                    color: "#fff",
+                    fontSize:
+                      "20px",
+                    marginTop:
+                      "10px",
+                  }}
+                >
+                  {item.nome}
+                </h2>
 
-              <h3
-                style={{
-                  color: "#00ff88",
-                  marginTop: "10px",
-                }}
-              >
-                R${" "}
-                {(
-                  Number(
-                    item.preco
-                  ) *
-                  Number(
-                    item.quantidade
-                  )
-                ).toFixed(2)}
-              </h3>
+                <p
+                  style={{
+                    color: "#ccc",
+                    marginTop:
+                      "5px",
+                  }}
+                >
+                  Quantidade:{" "}
+                  {item.quantidade}
+                </p>
 
-              <button
-                onClick={() =>
-                  removeFromCart(
-                    item.id
-                  )
-                }
-                style={{
-                  width: "100%",
-                  marginTop: "10px",
-                  padding: "12px",
-                  border: "none",
-                  borderRadius:
-                    "10px",
-                  background:
-                    "#ff3030",
-                  color: "#fff",
-                  fontWeight:
-                    "bold",
-                  cursor: "pointer",
-                }}
-              >
-                Remover 1
-              </button>
-            </div>
-          ))}
+                <h3
+                  style={{
+                    color: "#00ff88",
+                    marginTop:
+                      "10px",
+                  }}
+                >
+                  R$ {subtotal.toFixed(2)}
+                </h3>
+
+                <button
+                  onClick={() =>
+                    removeFromCart(
+                      item.id
+                    )
+                  }
+                  style={{
+                    width: "100%",
+                    marginTop:
+                      "10px",
+                    padding: "12px",
+                    border: "none",
+                    borderRadius:
+                      "10px",
+                    background:
+                      "#ff3030",
+                    color: "#fff",
+                    fontWeight:
+                      "bold",
+                    cursor:
+                      "pointer",
+                  }}
+                >
+                  Remover 1
+                </button>
+              </div>
+            );
+          })}
 
           <h2
             style={{
