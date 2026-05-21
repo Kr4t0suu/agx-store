@@ -10,6 +10,7 @@ function CartSidebar() {
 
   const total = cart.reduce((acc, item) => {
     const preco = Number(item.preco) || 0;
+
     const quantidade =
       Number(item.quantidade) || 1;
 
@@ -35,14 +36,28 @@ function CartSidebar() {
         })
       );
 
+      console.log(
+        "PRODUTOS ENVIADOS:",
+        produtosFormatados
+      );
+
+      console.log(
+        "TOTAL:",
+        total
+      );
+
       const { data, error } =
         await supabase
           .from("pedidos")
           .insert([
             {
+              cliente: "Cliente AGX",
+
               produtos:
                 produtosFormatados,
-              total: total,
+
+              valor_total: total,
+
               status: "pendente",
             },
           ])
@@ -104,7 +119,10 @@ function CartSidebar() {
         );
       }
     } catch (erro) {
-      console.log(erro);
+      console.log(
+        "ERRO GERAL:",
+        erro
+      );
 
       alert(
         "Erro ao conectar servidor"
@@ -194,7 +212,7 @@ function CartSidebar() {
               >
                 R${" "}
                 {Number(
-                  item.preco
+                  item.preco || 0
                 ).toFixed(2)}
               </h3>
 
@@ -232,7 +250,7 @@ function CartSidebar() {
             }}
           >
             Total: R${" "}
-            {total.toFixed(2)}
+            {Number(total).toFixed(2)}
           </h2>
 
           <button
