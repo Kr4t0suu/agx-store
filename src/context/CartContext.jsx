@@ -14,41 +14,35 @@ export function CartProvider({
     useState([]);
 
   function addToCart(produto) {
-    setCart((prevCart) => {
+    setCart((prev) => {
       const produtoExiste =
-        prevCart.find(
+        prev.find(
           (item) =>
             item.id === produto.id
         );
 
       if (produtoExiste) {
-        return prevCart.map(
-          (item) => {
-            if (
-              item.id === produto.id
-            ) {
-              return {
-                ...item,
-                quantidade:
-                  (Number(
-                    item.quantidade
-                  ) || 1) + 1,
-              };
-            }
-
-            return item;
+        return prev.map((item) => {
+          if (
+            item.id === produto.id
+          ) {
+            return {
+              ...item,
+              quantidade:
+                Number(
+                  item.quantidade
+                ) + 1,
+            };
           }
-        );
+
+          return item;
+        });
       }
 
       return [
-        ...prevCart,
+        ...prev,
         {
           ...produto,
-          preco:
-            Number(
-              produto.preco
-            ) || 0,
           quantidade: 1,
         },
       ];
@@ -56,36 +50,29 @@ export function CartProvider({
   }
 
   function removeFromCart(id) {
-    setCart((prevCart) => {
-      const produtoExiste =
-        prevCart.find(
-          (item) => item.id === id
-        );
+    setCart((prev) => {
+      const item = prev.find(
+        (p) => p.id === id
+      );
 
-      if (!produtoExiste)
-        return prevCart;
+      if (!item) return prev;
 
-      if (
-        produtoExiste.quantidade > 1
-      ) {
-        return prevCart.map(
-          (item) => {
-            if (item.id === id) {
-              return {
-                ...item,
-                quantidade:
-                  item.quantidade -
-                  1,
-              };
-            }
-
-            return item;
+      if (item.quantidade > 1) {
+        return prev.map((p) => {
+          if (p.id === id) {
+            return {
+              ...p,
+              quantidade:
+                p.quantidade - 1,
+            };
           }
-        );
+
+          return p;
+        });
       }
 
-      return prevCart.filter(
-        (item) => item.id !== id
+      return prev.filter(
+        (p) => p.id !== id
       );
     });
   }

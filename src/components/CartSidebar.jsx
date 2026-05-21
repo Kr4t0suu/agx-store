@@ -8,13 +8,18 @@ function CartSidebar() {
     clearCart,
   } = useCart();
 
-  const total = cart.reduce((acc, item) => {
-    return (
-      acc +
-      Number(item.preco) *
-        Number(item.quantidade)
-    );
-  }, 0);
+  const total = cart.reduce(
+    (acc, item) => {
+      return (
+        acc +
+        Number(item.preco || 0) *
+          Number(
+            item.quantidade || 1
+          )
+      );
+    },
+    0
+  );
 
   async function finalizarCompra() {
     try {
@@ -23,59 +28,63 @@ function CartSidebar() {
         return;
       }
 
-      const produtosFormatados = cart.map(
-        (item) => ({
+      const produtosFormatados =
+        cart.map((item) => ({
           id: item.id,
           nome: item.nome,
           preco:
             Number(item.preco) || 0,
           quantidade:
-            Number(item.quantidade) || 1,
-          imagem: item.imagem || "",
-        })
-      );
+            Number(
+              item.quantidade
+            ) || 1,
+          imagem:
+            item.imagem || "",
+        }));
 
       console.log(
-        "PRODUTOS ENVIADOS:",
+        "PRODUTOS:",
         produtosFormatados
       );
 
       console.log(
-        "TOTAL:",
+        "VALOR TOTAL:",
         total
       );
 
-      // SALVAR NO SUPABASE
-      const { data, error } =
-        await supabase
-          .from("pedidos")
-          .insert([
-            {
-              produtos:
-                produtosFormatados,
-              valor_total: total,
-              status: "pendente",
-            },
-          ])
-          .select();
+      // SALVAR PEDIDO
+      const {
+        data: pedidoSalvo,
+        error,
+      } = await supabase
+        .from("pedidos")
+        .insert([
+          {
+            produtos:
+              produtosFormatados,
+            valor_total: total,
+            status: "pendente",
+          },
+        ])
+        .select();
+
+      console.log(
+        "PEDIDO:",
+        pedidoSalvo
+      );
+
+      console.log(
+        "ERRO:",
+        error
+      );
 
       if (error) {
-        console.log(
-          "ERRO SUPABASE:",
-          error
-        );
-
         alert(
-          "Erro ao salvar pedido"
+          error.message
         );
 
         return;
       }
-
-      console.log(
-        "PEDIDO SALVO:",
-        data
-      );
 
       // MERCADO PAGO
       const resposta = await fetch(
@@ -95,29 +104,26 @@ function CartSidebar() {
         }
       );
 
-      const dataPagamento =
+      const pagamento =
         await resposta.json();
 
       console.log(
-        "MERCADO PAGO:",
-        dataPagamento
+        "PAGAMENTO:",
+        pagamento
       );
 
-      if (
-        dataPagamento.init_point
-      ) {
+      if (pagamento.init_point) {
         clearCart();
 
         window.location.href =
-          dataPagamento.init_point;
+          pagamento.init_point;
       } else {
-        console.log(
-          "ERRO MP:",
-          dataPagamento
+        alert(
+          "Erro Mercado Pago"
         );
 
-        alert(
-          "Erro ao gerar pagamento"
+        console.log(
+          pagamento
         );
       }
     } catch (erro) {
@@ -214,7 +220,9 @@ function CartSidebar() {
               >
                 R${" "}
                 {(
-                  Number(item.preco) *
+                  Number(
+                    item.preco
+                  ) *
                   Number(
                     item.quantidade
                   )
