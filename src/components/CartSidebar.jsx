@@ -5,14 +5,16 @@ function CartSidebar() {
 
   const total = cart.reduce(
     (acc, item) =>
-      acc + Number(item.preco) * item.quantidade,
+      acc +
+      Number(item.preco) *
+        Number(item.quantidade || 1),
     0
   );
 
   async function finalizarCompra() {
     try {
       const resposta = await fetch(
-        "https://agx-store-production.up.railway.app/criar-pagamento",
+        "https://agx-store.vercel.app/api",
         {
           method: "POST",
 
@@ -28,10 +30,16 @@ function CartSidebar() {
 
       const data = await resposta.json();
 
+      console.log(data);
+
       if (data.init_point) {
-        window.location.href = data.init_point;
+        window.location.href =
+          data.init_point;
       } else {
-        alert("Erro ao gerar pagamento");
+        alert(
+          data.erro ||
+            "Erro ao gerar pagamento"
+        );
       }
     } catch (erro) {
       console.log(erro);
@@ -107,7 +115,8 @@ function CartSidebar() {
                   marginTop: "5px",
                 }}
               >
-                Quantidade: {item.quantidade}
+                Quantidade:{" "}
+                {item.quantidade || 1}
               </p>
 
               <h3
@@ -147,7 +156,8 @@ function CartSidebar() {
               fontSize: "34px",
             }}
           >
-            Total: R$ {total}
+            Total: R${" "}
+            {total.toFixed(2)}
           </h2>
 
           <button
