@@ -1,26 +1,40 @@
-import { createContext, useContext, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+} from "react";
 
-const CartContext = createContext();
+const CartContext =
+  createContext();
 
-export function CartProvider({ children }) {
-  const [cart, setCart] = useState([]);
+export function CartProvider({
+  children,
+}) {
+  const [cart, setCart] =
+    useState([]);
 
   function addToCart(produto) {
     const produtoExiste = cart.find(
-      (item) => item.id === produto.id
+      (item) =>
+        item.id === produto.id
     );
 
     if (produtoExiste) {
-      const novoCarrinho = cart.map((item) => {
-        if (item.id === produto.id) {
-          return {
-            ...item,
-            quantidade: item.quantidade + 1,
-          };
-        }
+      const novoCarrinho =
+        cart.map((item) => {
+          if (
+            item.id === produto.id
+          ) {
+            return {
+              ...item,
+              quantidade:
+                (item.quantidade ||
+                  1) + 1,
+            };
+          }
 
-        return item;
-      });
+          return item;
+        });
 
       setCart(novoCarrinho);
     } else {
@@ -41,24 +55,34 @@ export function CartProvider({ children }) {
 
     if (!produtoExiste) return;
 
-    if (produtoExiste.quantidade > 1) {
-      const novoCarrinho = cart.map((item) => {
-        if (item.id === id) {
-          return {
-            ...item,
-            quantidade: item.quantidade - 1,
-          };
-        }
+    if (
+      produtoExiste.quantidade > 1
+    ) {
+      const novoCarrinho =
+        cart.map((item) => {
+          if (item.id === id) {
+            return {
+              ...item,
+              quantidade:
+                item.quantidade - 1,
+            };
+          }
 
-        return item;
-      });
+          return item;
+        });
 
       setCart(novoCarrinho);
     } else {
       setCart(
-        cart.filter((item) => item.id !== id)
+        cart.filter(
+          (item) => item.id !== id
+        )
       );
     }
+  }
+
+  function clearCart() {
+    setCart([]);
   }
 
   return (
@@ -67,6 +91,7 @@ export function CartProvider({ children }) {
         cart,
         addToCart,
         removeFromCart,
+        clearCart,
       }}
     >
       {children}

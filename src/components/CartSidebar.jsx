@@ -2,33 +2,69 @@ import { useCart } from "../context/CartContext";
 import { supabase } from "../supabase";
 
 function CartSidebar() {
-  const { cart, removeFromCart } = useCart();
+  const {
+    cart,
+    removeFromCart,
+    clearCart,
+  } = useCart();
 
   const total = cart.reduce((acc, item) => {
     const preco = Number(item.preco) || 0;
-    const quantidade = Number(item.quantidade) || 1;
+    const quantidade =
+      Number(item.quantidade) || 1;
 
     return acc + preco * quantidade;
   }, 0);
 
   async function finalizarCompra() {
     try {
-      const { error } = await supabase
-        .from("pedidos")
-        .insert([
-          {
-            cliente: "Cliente AGX",
-            produtos: cart,
-            valor_total: total,
-            status: "pendente",
-          },
-        ]);
-
-      if (error) {
-        console.log(error);
-        alert("Erro ao salvar pedido");
+      if (cart.length === 0) {
+        alert("Carrinho vazio");
         return;
       }
+
+      const produtosFormatados = cart.map(
+        (item) => ({
+          id: item.id,
+          nome: item.nome,
+          preco:
+            Number(item.preco) || 0,
+          quantidade:
+            Number(item.quantidade) || 1,
+          imagem: item.imagem || "",
+        })
+      );
+
+      const { data, error } =
+        await supabase
+          .from("pedidos")
+          .insert([
+            {
+              produtos:
+                produtosFormatados,
+              total: total,
+              status: "pendente",
+            },
+          ])
+          .select();
+
+      if (error) {
+        console.log(
+          "ERRO SUPABASE:",
+          error
+        );
+
+        alert(
+          "Erro ao salvar pedido"
+        );
+
+        return;
+      }
+
+      console.log(
+        "PEDIDO SALVO:",
+        data
+      );
 
       const resposta = await fetch(
         "/api/create-preference",
@@ -36,32 +72,43 @@ function CartSidebar() {
           method: "POST",
 
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type":
+              "application/json",
           },
 
           body: JSON.stringify({
-            itens: cart.map((item) => ({
-              id: item.id,
-              nome: item.nome,
-              preco: Number(item.preco) || 0,
-              quantidade:
-                Number(item.quantidade) || 1,
-            })),
+            itens:
+              produtosFormatados,
           }),
         }
       );
 
-      const data = await resposta.json();
+      const dataPagamento =
+        await resposta.json();
 
-      if (data.init_point) {
-        window.location.href = data.init_point;
+      console.log(
+        "MERCADO PAGO:",
+        dataPagamento
+      );
+
+      if (
+        dataPagamento.init_point
+      ) {
+        clearCart();
+
+        window.location.href =
+          dataPagamento.init_point;
       } else {
-        alert("Erro ao gerar pagamento");
+        alert(
+          "Erro ao gerar pagamento"
+        );
       }
     } catch (erro) {
       console.log(erro);
 
-      alert("Erro ao conectar servidor");
+      alert(
+        "Erro ao conectar servidor"
+      );
     }
   }
 
@@ -74,7 +121,8 @@ function CartSidebar() {
         width: "340px",
         height: "100vh",
         background: "#050505",
-        borderLeft: "1px solid #222",
+        borderLeft:
+          "1px solid #222",
         padding: "20px",
         overflowY: "auto",
       }}
@@ -100,7 +148,8 @@ function CartSidebar() {
               key={item.id}
               style={{
                 background: "#111",
-                borderRadius: "15px",
+                borderRadius:
+                  "15px",
                 padding: "10px",
                 marginBottom: "15px",
               }}
@@ -112,7 +161,8 @@ function CartSidebar() {
                   width: "100%",
                   height: "180px",
                   objectFit: "cover",
-                  borderRadius: "10px",
+                  borderRadius:
+                    "10px",
                 }}
               />
 
@@ -132,7 +182,8 @@ function CartSidebar() {
                   marginTop: "5px",
                 }}
               >
-                Quantidade: {item.quantidade || 1}
+                Quantidade:{" "}
+                {item.quantidade || 1}
               </p>
 
               <h3
@@ -141,22 +192,30 @@ function CartSidebar() {
                   marginTop: "10px",
                 }}
               >
-                R$ {Number(item.preco).toFixed(2)}
+                R${" "}
+                {Number(
+                  item.preco
+                ).toFixed(2)}
               </h3>
 
               <button
                 onClick={() =>
-                  removeFromCart(item.id)
+                  removeFromCart(
+                    item.id
+                  )
                 }
                 style={{
                   width: "100%",
                   marginTop: "10px",
                   padding: "12px",
                   border: "none",
-                  borderRadius: "10px",
-                  background: "#ff3030",
+                  borderRadius:
+                    "10px",
+                  background:
+                    "#ff3030",
                   color: "#fff",
-                  fontWeight: "bold",
+                  fontWeight:
+                    "bold",
                   cursor: "pointer",
                 }}
               >
@@ -172,20 +231,26 @@ function CartSidebar() {
               fontSize: "34px",
             }}
           >
-            Total: R$ {total.toFixed(2)}
+            Total: R${" "}
+            {total.toFixed(2)}
           </h2>
 
           <button
-            onClick={finalizarCompra}
+            onClick={
+              finalizarCompra
+            }
             style={{
               width: "100%",
               marginTop: "20px",
               padding: "18px",
               border: "none",
-              borderRadius: "12px",
-              background: "#00ff88",
+              borderRadius:
+                "12px",
+              background:
+                "#00ff88",
               color: "#000",
-              fontWeight: "bold",
+              fontWeight:
+                "bold",
               fontSize: "20px",
               cursor: "pointer",
             }}
