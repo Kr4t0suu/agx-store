@@ -1,17 +1,26 @@
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+
 import { supabase } from "./supabase";
 
 import CartSidebar from "./components/CartSidebar";
+import Navbar from "./components/Navbar";
+
 import { useCart } from "./context/CartContext";
 
 function App() {
-  const [produtos, setProdutos] =
-    useState([]);
+  const [produtos, setProdutos] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [
+    categoriaSelecionada,
+    setCategoriaSelecionada,
+  ] = useState("Todos");
 
   const { addToCart } = useCart();
+
+  const isMobile =
+    window.innerWidth <= 768;
 
   useEffect(() => {
     carregarProdutos();
@@ -25,25 +34,16 @@ function App() {
         .from("produtos")
         .select("*")
         .order("id", {
-          ascending: true,
+          ascending: false,
         });
 
     if (error) {
-      console.log(
-        "ERRO SUPABASE:",
-        error
-      );
+      console.log(error);
     } else {
-      console.log(
-        "PRODUTOS:",
-        data
-      );
-
       const produtosCorrigidos =
         (data || []).map(
           (produto) => ({
             ...produto,
-
             preco:
               Number(
                 produto.preco
@@ -59,194 +59,408 @@ function App() {
     setLoading(false);
   }
 
+  const categorias = [
+    "Todos",
+
+    ...new Set(
+      produtos.map(
+        (produto) =>
+          produto.categoria ||
+          "Outros"
+      )
+    ),
+  ];
+
+  const produtosFiltrados =
+    categoriaSelecionada ===
+    "Todos"
+      ? produtos
+      : produtos.filter(
+          (produto) =>
+            produto.categoria ===
+            categoriaSelecionada
+        );
+
   return (
     <div
       style={{
-        background: "#000",
+        background: "#050505",
         minHeight: "100vh",
         color: "#fff",
         fontFamily: "Arial",
-        display: "flex",
       }}
     >
+      {/* NAVBAR */}
+      <Navbar />
+
       <div
         style={{
-          flex: 1,
-          padding: "20px",
+          maxWidth: "1250px",
+          margin: "0 auto",
+          padding: isMobile
+            ? "110px 10px 20px"
+            : "140px 20px 30px",
         }}
       >
-        <h1
+        {/* HEADER */}
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 20,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            duration: 0.5,
+          }}
           style={{
-            fontSize: "48px",
             marginBottom: "30px",
           }}
         >
-          AGX STORE
-        </h1>
+          <h1
+            style={{
+              fontSize: isMobile
+                ? "38px"
+                : "52px",
+              fontWeight: "900",
+              marginBottom: "10px",
+              letterSpacing: "-2px",
+            }}
+          >
+            LOJA AGX
+          </h1>
 
+          <p
+            style={{
+              color: "#888",
+              fontSize: isMobile
+                ? "15px"
+                : "18px",
+            }}
+          >
+            Produtos premium e
+            virais
+          </p>
+        </motion.div>
+
+        {/* CATEGORIAS */}
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            flexWrap: "wrap",
+            marginBottom: "30px",
+          }}
+        >
+          {categorias.map(
+            (categoria) => (
+              <button
+                key={categoria}
+                onClick={() =>
+                  setCategoriaSelecionada(
+                    categoria
+                  )
+                }
+                style={{
+                  padding: isMobile
+                    ? "10px 16px"
+                    : "10px 18px",
+
+                  borderRadius:
+                    "999px",
+
+                  border:
+                    categoriaSelecionada ===
+                    categoria
+                      ? "none"
+                      : "1px solid #333",
+
+                  background:
+                    categoriaSelecionada ===
+                    categoria
+                      ? "#d4af37"
+                      : "#111",
+
+                  color:
+                    categoriaSelecionada ===
+                    categoria
+                      ? "#000"
+                      : "#fff",
+
+                  fontWeight:
+                    "bold",
+
+                  fontSize: isMobile
+                    ? "14px"
+                    : "16px",
+
+                  cursor:
+                    "pointer",
+
+                  transition:
+                    "0.3s",
+                }}
+              >
+                {categoria}
+              </button>
+            )
+          )}
+        </div>
+
+        {/* LOADING */}
         {loading ? (
-          <h2>
-            Carregando produtos...
-          </h2>
-        ) : (
           <div
+            style={{
+              display: "flex",
+              justifyContent:
+                "center",
+              padding: "100px",
+            }}
+          >
+            <h2>
+              Carregando produtos...
+            </h2>
+          </div>
+        ) : (
+          <motion.div
+            layout
             style={{
               display: "grid",
 
               gridTemplateColumns:
-                "repeat(auto-fit, minmax(300px, 1fr))",
+                isMobile
+                  ? "repeat(2, 1fr)"
+                  : "repeat(auto-fit,minmax(230px,1fr))",
 
-              gap: "20px",
+              gap: isMobile
+                ? "10px"
+                : "18px",
             }}
           >
-            {produtos.map(
-              (produto) => (
-                <div
-                  key={produto.id}
-                  style={{
-                    background:
-                      "#111",
-
-                    border:
-                      "1px solid #333",
-
-                    borderRadius:
-                      "15px",
-
-                    overflow:
-                      "hidden",
-                  }}
-                >
-                  <img
-                    src={
-                      produto.imagem
-                    }
-                    alt={
-                      produto.nome
-                    }
-                    onError={(
-                      e
-                    ) => {
-                      e.target.src =
-                        "https://via.placeholder.com/500x500?text=Imagem+Indisponivel";
+            <AnimatePresence>
+              {produtosFiltrados.map(
+                (produto) => (
+                  <motion.div
+                    key={produto.id}
+                    layout
+                    initial={{
+                      opacity: 0,
+                      scale: 0.9,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      scale: 1,
+                    }}
+                    exit={{
+                      opacity: 0,
+                      scale: 0.9,
+                    }}
+                    transition={{
+                      duration: 0.3,
+                    }}
+                    whileHover={{
+                      y: -6,
                     }}
                     style={{
-                      width:
-                        "100%",
+                      background:
+                        "#111",
 
-                      height:
-                        "300px",
+                      border:
+                        "1px solid #1f1f1f",
 
-                      objectFit:
-                        "cover",
-                    }}
-                  />
+                      borderRadius:
+                        isMobile
+                          ? "16px"
+                          : "22px",
 
-                  <div
-                    style={{
-                      padding:
-                        "15px",
+                      overflow:
+                        "hidden",
+
+                      boxShadow:
+                        "0 0 20px rgba(0,0,0,0.25)",
+
+                      transition:
+                        "0.3s",
                     }}
                   >
-                    <h2
+                    {/* IMAGEM */}
+                    <div
                       style={{
-                        fontSize:
-                          "28px",
-
-                        marginBottom:
-                          "5px",
+                        overflow:
+                          "hidden",
                       }}
                     >
-                      {
-                        produto.nome
-                      }
-                    </h2>
+                      <img
+                        src={
+                          produto.imagem ||
+                          "https://placehold.co/600x600/111/FFF?text=AGX"
+                        }
+                        alt={
+                          produto.nome
+                        }
+                        onError={(
+                          e
+                        ) => {
+                          e.target.src =
+                            "https://placehold.co/600x600/111/FFF?text=AGX";
+                        }}
+                        style={{
+                          width:
+                            "100%",
 
-                    <p
+                          height:
+                            isMobile
+                              ? "150px"
+                              : "240px",
+
+                          objectFit:
+                            "cover",
+
+                          transition:
+                            "0.4s",
+                        }}
+                      />
+                    </div>
+
+                    {/* INFO */}
+                    <div
                       style={{
-                        color:
-                          "#ccc",
-
-                        marginBottom:
-                          "10px",
-                      }}
-                    >
-                      {
-                        produto.categoria
-                      }
-                    </p>
-
-                    <h3
-                      style={{
-                        color:
-                          "#00ff88",
-
-                        fontSize:
-                          "30px",
-
-                        marginBottom:
-                          "15px",
-                      }}
-                    >
-                      R${" "}
-                      {Number(
-                        produto.preco ||
-                          0
-                      ).toFixed(2)}
-                    </h3>
-
-                    <button
-                      onClick={() =>
-                        addToCart({
-                          ...produto,
-
-                          preco:
-                            Number(
-                              produto.preco
-                            ) || 0,
-
-                          quantidade: 1,
-                        })
-                      }
-                      style={{
-                        width:
-                          "100%",
-
                         padding:
-                          "14px",
-
-                        background:
-                          "#00ff88",
-
-                        color:
-                          "#000",
-
-                        border:
-                          "none",
-
-                        borderRadius:
-                          "8px",
-
-                        fontWeight:
-                          "bold",
-
-                        fontSize:
-                          "16px",
-
-                        cursor:
-                          "pointer",
+                          isMobile
+                            ? "10px"
+                            : "16px",
                       }}
                     >
-                      Comprar
-                    </button>
-                  </div>
-                </div>
-              )
-            )}
-          </div>
+                      <h2
+                        style={{
+                          fontSize:
+                            isMobile
+                              ? "15px"
+                              : "20px",
+
+                          fontWeight:
+                            "800",
+
+                          marginBottom:
+                            "8px",
+
+                          lineHeight:
+                            "1.3",
+
+                          minHeight:
+                            isMobile
+                              ? "42px"
+                              : "auto",
+                        }}
+                      >
+                        {
+                          produto.nome
+                        }
+                      </h2>
+
+                      <p
+                        style={{
+                          color:
+                            "#777",
+
+                          marginBottom:
+                            "10px",
+
+                          fontSize:
+                            isMobile
+                              ? "12px"
+                              : "14px",
+                        }}
+                      >
+                        {
+                          produto.categoria
+                        }
+                      </p>
+
+                      <h3
+                        style={{
+                          color:
+                            "#d4af37",
+
+                          fontSize:
+                            isMobile
+                              ? "20px"
+                              : "28px",
+
+                          fontWeight:
+                            "900",
+
+                          marginBottom:
+                            "12px",
+                        }}
+                      >
+                        R${" "}
+                        {produto.preco.toFixed(
+                          2
+                        )}
+                      </h3>
+
+                      <button
+                        onClick={() =>
+                          addToCart(
+                            {
+                              ...produto,
+                              quantidade: 1,
+                            }
+                          )
+                        }
+                        style={{
+                          width:
+                            "100%",
+
+                          padding:
+                            isMobile
+                              ? "10px"
+                              : "12px",
+
+                          background:
+                            "#d4af37",
+
+                          color:
+                            "#000",
+
+                          border:
+                            "none",
+
+                          borderRadius:
+                            isMobile
+                              ? "10px"
+                              : "12px",
+
+                          fontWeight:
+                            "bold",
+
+                          fontSize:
+                            isMobile
+                              ? "13px"
+                              : "15px",
+
+                          cursor:
+                            "pointer",
+
+                          transition:
+                            "0.3s",
+                        }}
+                      >
+                        Comprar Agora
+                      </button>
+                    </div>
+                  </motion.div>
+                )
+              )}
+            </AnimatePresence>
+          </motion.div>
         )}
       </div>
 
+      {/* SIDEBAR */}
       <CartSidebar />
     </div>
   );

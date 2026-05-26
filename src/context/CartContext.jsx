@@ -1,6 +1,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useState,
 } from "react";
 
@@ -13,30 +14,45 @@ export function CartProvider({
   const [cart, setCart] =
     useState([]);
 
+  useEffect(() => {
+    const cartSalvo =
+      localStorage.getItem(
+        "agx-cart"
+      );
+
+    if (cartSalvo) {
+      setCart(
+        JSON.parse(cartSalvo)
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "agx-cart",
+      JSON.stringify(cart)
+    );
+  }, [cart]);
+
   function addToCart(produto) {
     setCart((prev) => {
-      const produtoExiste =
+      const existe =
         prev.find(
           (item) =>
             item.id === produto.id
         );
 
-      if (produtoExiste) {
-        return prev.map((item) => {
-          if (
-            item.id === produto.id
-          ) {
-            return {
-              ...item,
-              quantidade:
-                Number(
-                  item.quantidade
-                ) + 1,
-            };
-          }
-
-          return item;
-        });
+      if (existe) {
+        return prev.map((item) =>
+          item.id === produto.id
+            ? {
+                ...item,
+                quantidade:
+                  item.quantidade +
+                  1,
+              }
+            : item
+        );
       }
 
       return [
@@ -52,27 +68,28 @@ export function CartProvider({
   function removeFromCart(id) {
     setCart((prev) => {
       const item = prev.find(
-        (p) => p.id === id
+        (produto) =>
+          produto.id === id
       );
 
       if (!item) return prev;
 
-      if (item.quantidade > 1) {
-        return prev.map((p) => {
-          if (p.id === id) {
-            return {
-              ...p,
-              quantidade:
-                p.quantidade - 1,
-            };
-          }
-
-          return p;
-        });
+      if (item.quantidade === 1) {
+        return prev.filter(
+          (produto) =>
+            produto.id !== id
+        );
       }
 
-      return prev.filter(
-        (p) => p.id !== id
+      return prev.map((produto) =>
+        produto.id === id
+          ? {
+              ...produto,
+              quantidade:
+                produto.quantidade -
+                1,
+            }
+          : produto
       );
     });
   }

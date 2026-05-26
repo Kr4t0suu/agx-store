@@ -6,8 +6,13 @@ const supabaseUrl =
 const supabaseKey =
   "sb_publishable_Wvzz8wyR6EKCwQ6OcU0ImQ_YRYvNUwN";
 
-export const supabase =
-  createClient(
-    supabaseUrl,
-    supabaseKey
-  );
+export const supabase = createClient(
+  supabaseUrl,
+  supabaseKey,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+    },
+  }
+);

@@ -1,37 +1,137 @@
-.product-card{
-  background: #111;
-  border: 1px solid #333;
-  border-radius: 12px;
-  padding: 15px;
+.product-card {
+  background: #0b0b0b;
+  border: 1px solid #1f1f1f;
+  border-radius: 28px;
+  overflow: hidden;
+  transition: 0.35s;
+  position: relative;
+  width: 100%;
 }
 
-.product-card img{
+.product-card:hover {
+  transform: translateY(-8px);
+  border-color: #d4af37;
+  box-shadow: 0 0 35px rgba(212,175,55,0.15);
+}
+
+.product-image-container {
+  position: relative;
   width: 100%;
-  height: 250px;
+  height: 340px;
+  overflow: hidden;
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border-radius: 10px;
+  transition: 0.5s;
 }
 
-.product-card h2{
-  margin-top: 10px;
+.product-card:hover .product-image {
+  transform: scale(1.08);
+}
+
+.product-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0,0,0,0.55),
+    transparent
+  );
+}
+
+.product-info {
+  padding: 24px;
+}
+
+.product-category {
+  color: #d4af37;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.product-title {
   color: white;
+  font-size: 30px;
+  font-weight: 800;
+  margin-bottom: 16px;
+  line-height: 1.1;
 }
 
-.product-card p{
-  color: #aaa;
+.product-price {
+  color: #d4af37;
+  font-size: 36px;
+  font-weight: 900;
+  margin-bottom: 24px;
 }
 
-.product-card h3{
-  color: #00ff88;
-}
-
-.product-card button{
+.product-button {
   width: 100%;
-  padding: 12px;
   border: none;
-  border-radius: 8px;
-  background: #00ff88;
+  background: linear-gradient(
+    135deg,
+    #d4af37,
+    #f5d76e
+  );
   color: black;
-  font-weight: bold;
+  font-size: 18px;
+  font-weight: 800;
+  padding: 16px;
+  border-radius: 18px;
   cursor: pointer;
+  transition: 0.3s;
+}
+
+.product-button:hover {
+  background: white;
+  transform: scale(1.03);
+}
+
+/* ========================= */
+/* MOBILE ESTILO SHOPEE */
+/* ========================= */
+
+@media (max-width: 768px) {
+
+  .product-card {
+    border-radius: 16px;
+    width: 100%;
+  }
+
+  .product-image-container {
+    height: 140px;
+  }
+
+  .product-info {
+    padding: 10px;
+  }
+
+  .product-category {
+    font-size: 10px;
+    margin-bottom: 4px;
+  }
+
+  .product-title {
+    font-size: 14px;
+    line-height: 1.3;
+    margin-bottom: 8px;
+    min-height: 38px;
+  }
+
+  .product-price {
+    font-size: 22px;
+    margin-bottom: 10px;
+  }
+
+  .product-button {
+    font-size: 13px;
+    padding: 10px;
+    border-radius: 12px;
+  }
+
 }
