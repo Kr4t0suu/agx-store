@@ -141,11 +141,9 @@ function CartSidebar() {
       ) {
         clearCart();
 
-        // ABRE MAIS RÁPIDO
-        window.open(
-          dataPagamento.init_point,
-          "_blank"
-        );
+        // MELHOR COMPATIBILIDADE MOBILE
+        window.location.href =
+          dataPagamento.init_point;
       } else {
         alert(
           "Erro Mercado Pago"
